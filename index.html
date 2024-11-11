@@ -1,0 +1,366 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة دردشة</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #1a1c2c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* واجهة إعداد المستخدم */
+        .user-setup {
+            background-color: #2a2d3e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 300px;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* معاينة الصورة الشخصية */
+        .profile-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #4b4e6d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* تنسيق حقل الإدخال */
+        .user-setup input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            background-color: #dfe1e5;
+            color: #333;
+            text-align: center;
+        }
+
+        /* زر اختيار الصورة */
+        .custom-file-upload {
+            display: inline-block;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #ffffff;
+            background-color: #4b4e6d;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #6063a2;
+        }
+
+        .user-setup input[type="file"] {
+            display: none;
+        }
+
+        /* زر الحفظ */
+        .user-setup button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #ff7f50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .user-setup button:hover {
+            background-color: #ff6347;
+        }
+
+        /* شريط الميكروفونات */
+        .microphone-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            background-color: #2a2d3e;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        /* الأيقونات الدائرية */
+        .microphone-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #4b4e6d;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        /* منطقة الدردشة */
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            height: calc(100vh - 150px);
+            display: flex;
+            flex-direction: column;
+            background-color: #1a1c2c;
+            border-radius: 10px;
+            margin-top: 100px;
+            overflow: hidden;
+        }
+
+        /* الرسائل */
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            padding: 10px;
+            margin-bottom: 70px;
+        }
+
+        /* الرسوم المتحركة للرسائل */
+        @keyframes smoothPopIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* تنسيق الرسالة */
+        .chat-message {
+            background-color: #4b4e6d;
+            color: #ffffff;
+            padding: 10px;
+            margin: 8px 0;
+            max-width: 70%;
+            font-size: 14px;
+            border-radius: 20px;
+            align-self: flex-end;
+            text-align: right;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: smoothPopIn 0.5s ease-out;
+            flex-direction: row-reverse;
+        }
+
+        /* صورة المستخدم بجانب الرسالة */
+        .chat-message .profile-image {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* تنسيق اسم المستخدم باللون البرتقالي */
+        .chat-message .username {
+            color: orange;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* شريط الإدخال */
+        .chat-input {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #2a2d3e;
+            border-top: 1px solid #444;
+            box-shadow: 0px -4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            border-radius: 0 0 10px 10px;
+            gap: 10px;
+        }
+
+        /* تحسين حقل الإدخال */
+        .chat-input input[type="text"] {
+            flex-grow: 1;
+            border: none;
+            padding: 12px 15px;
+            font-size: 16px;
+            border-radius: 25px;
+            outline: none;
+            background-color: #dfe1e5;
+            color: #333;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .chat-input input[type="text"]:focus {
+            box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* تحسين زر الإرسال */
+        .chat-input button {
+            background-color: #ff7f50;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-input button:hover {
+            background-color: #ff6347;
+            transform: scale(1.1);
+        }
+
+        .chat-input button svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="user-setup" id="userSetup">
+        <div class="profile-preview">
+            <img id="profileImagePreview" src="https://via.placeholder.com/100" alt="صورة المستخدم" />
+        </div>
+        <input type="text" id="usernameInput" placeholder="ادخل اسم المستخدم" />
+        <label for="profileImageInput" class="custom-file-upload">اختر صورة</label>
+        <input type="file" id="profileImageInput" accept="image/*" onchange="previewImage(event)" />
+        <button onclick="saveUserInfo()">حفظ</button>
+    </div>
+
+    <div class="microphone-bar" id="microphoneBar" style="display: none;">
+        <div class="microphone-icon">🎤</div>
+        <div class="microphone-icon">🎤</div>
+        <div class="microphone-icon">🎤</div>
+        <div class="microphone-icon">🎤</div>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display: none;">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input" id="chatInput">
+            <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." />
+            <button onclick="sendMessage()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2L11 13"></path>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let username = "";
+        let profileImageUrl = "";
+
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                const profileImagePreview = document.getElementById("profileImagePreview");
+                profileImagePreview.src = reader.result;
+                profileImageUrl = reader.result;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function saveUserInfo() {
+            const usernameInput = document.getElementById("usernameInput");
+            
+            if (usernameInput.value.trim() !== "") {
+                username = usernameInput.value;
+                document.getElementById("userSetup").style.display = "none";
+                document.getElementById("chatContainer").style.display = "flex";
+                document.getElementById("microphoneBar").style.display = "flex";
+                document.getElementById("chatInput").style.display = "flex";
+            } else {
+                alert("يرجى إدخال اسم مستخدم");
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById("messageInput");
+            const chatMessages = document.getElementById("chatMessages");
+            
+            if (messageInput.value.trim() !== "" && username) {
+                const newMessage = document.createElement("div");
+                newMessage.classList.add("chat-message");
+
+                // صورة المستخدم
+                if (profileImageUrl) {
+                    const profileImage = document.createElement("img");
+                    profileImage.src = profileImageUrl;
+                    profileImage.classList.add("profile-image");
+                    newMessage.appendChild(profileImage);
+                }
+
+                // اسم المستخدم
+                const userLabel = document.createElement("span");
+                userLabel.classList.add("username");
+                userLabel.textContent = username;
+                newMessage.appendChild(userLabel);
+
+                // نص الرسالة
+                const messageText = document.createElement("span");
+                messageText.textContent = messageInput.value;
+                newMessage.appendChild(messageText);
+
+                chatMessages.prepend(newMessage);
+
+                messageInput.value = "";
+                messageInput.focus();
+            }
+        }
+    </script>
+</body>
+</html>
